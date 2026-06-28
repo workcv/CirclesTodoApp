@@ -1,0 +1,150 @@
+!pip install buildozer
+!pip install cython
+
+
+!sudo apt-get update
+!sudo apt-get install -y \
+    python3-pip \
+    build-essential \
+    git \
+    python3 \
+    python3-dev \
+    ffmpeg \
+    libsdl2-dev \
+    libsdl2-image-dev \
+    libsdl2-mixer-dev \
+    libsdl2-ttf-dev \
+    libportmidi-dev \
+    libswscale-dev \
+    libavformat-dev \
+    libavcodec-dev \
+    zlib1g-dev \
+    libgstreamer1.0 \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    libltdl-dev \
+    libgl1-mesa-dev \
+    libgles2-mesa-dev \
+    zip \
+    unzip \
+    openjdk-17-jdk
+
+
+
+import os
+os.chdir('/content')
+!buildozer init
+
+
+
+
+spec = open('buildozer.spec').read()
+
+replacements = {
+    'title = My Application':       'title = CirclesApp',
+    'package.name = myapp':         'package.name = circlesapp',
+    'package.domain = org.test':    'package.domain = org.circles',
+    'source.include_exts = py,png,jpg,kv,atlas':
+        'source.include_exts = py,png,jpg,kv,atlas,cir',
+    '#android.permissions =':
+        'android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,MANAGE_EXTERNAL_STORAGE',
+    'requirements = python3,kivy':
+        'requirements = python3,kivy,android',
+    '#android.api = 31':            'android.api = 33',
+    '#android.minapi = 21':         'android.minapi = 21',
+    '#android.archs = arm64-v8a, armeabi-v7a':
+        'android.archs = arm64-v8a',
+}
+
+for old, new in replacements.items():
+    if old in spec:
+        spec = spec.replace(old, new)
+        print(f'OK: {new[:50]}')
+    else:
+        print(f'NOT FOUND: {old[:50]}')
+
+open('buildozer.spec', 'w').write(spec)
+print('\nDone. Current relevant lines:')
+for line in open('buildozer.spec'):
+    if any(k in line for k in ['title','package','permissions','requirements','android.api','archs']):
+        print(' ', line.strip())
+
+
+!buildozer -v android debug 2>&1 | tail -50
+
+Вот обновленный и готовый к копированию текст файла buildozer.spec со значением all:
+
+
+[app]
+
+# (str) Название вашего приложения на экране телефона
+title = CirclesApp
+
+# (str) Имя пакета (только маленькие латинские буквы, без символов)
+package.name = circlesapp
+
+# (str) Домен пакета
+package.domain = org.circles
+
+# (str) Где лежит ваш файл main.py (. означает текущий корень папки /content/)
+source.dir = .
+
+# (list) Расширения файлов, которые будут упакованы внутрь APK
+source.include_exts = py,png,jpg,kv,atlas,cir
+
+# (str) Версия вашего приложения
+version = 0.1
+
+# (list) Зависимости (только самое необходимое для интерфейса)
+requirements = python3, kivy, android
+
+# ИСПРАВЛЕНО: Полная поддержка любого поворота экрана на 360 градусов
+orientation = all
+
+# (bool) Полноэкранный режим (0 — показывать панель уведомлений сверху)
+fullscreen = 0
+
+# ==========================================
+# Настройки для сборки под Android
+# ==========================================
+
+# (list) Разрешения разделены строго через запятую
+android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE, INTERNET
+
+# (int) Целевое Android API (актуальное для современных телефонов)
+android.api = 33
+
+# (int) Минимальная версия Android, которую поддерживает приложение
+android.minapi = 24
+
+# (str) Проверенная и стабильная версия NDK для API 33
+android.ndk = 25b
+
+# (list) Сборка только под одну архитектуру (arm64), чтобы Colab успел всё собрать
+android.archs = arm64-v8a
+
+# (bool) Автоматически принимать лицензии Android SDK при сборке
+android.accept_sdk_license = True
+
+# (bool) Включение поддержки AndroidX (необходимо для новых Gradle библиотек)
+android.enable_androidx = True
+
+[buildozer]
+# Уровень логирования 2 (максимально подробный вывод всех этапов)
+log_level = 2
+
+
+Как это исправить за пару секундВам нужно запустить установку Linux-пакетов, очистить этот сломанный шаг и запустить команду снова. Создайте новую ячейку прямо над вашей командой сборки, вставьте этот код и запустите его:
+
+# 1. Устанавливаем недостающие инструменты сборки в систему Linux
+!apt-get update
+!apt-get install -y autoconf automake libtool pkg-config patch-utils openjdk-17-jdk
+
+# 2. Принудительно задаем Java 17 для стабильности Gradle
+!update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+
+# 3. Полностью сбрасываем сломавшийся кэш автоконфигурации
+%cd /content/
+!buildozer android clean
+
+

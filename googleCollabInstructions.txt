@@ -1,0 +1,52 @@
+# 1. Устанавливаем системные пакеты Linux и Java 17
+!apt-get update
+!apt-get install -y autoconf automake libtool pkg-config openjdk-17-jdk
+
+# 2. Настраиваем Java 17 по умолчанию для Android API 33
+!update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+
+# 3. Устанавливаем СТАНДАРТНЫЙ buildozer из официального репозитория pip
+!pip install --upgrade buildozer "cython<3.0.0" setuptools virtualenv
+
+
+
+spec_content = """
+[app]
+title = CirclesApp
+package.name = circlesapp
+package.domain = org.circles
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,cir
+version = 0.1
+
+requirements = python3, kivy, android
+orientation = all
+fullscreen = 0
+
+android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE, INTERNET
+
+android.api = 31
+android.minapi = 24
+android.ndk = 23b
+android.archs = arm64-v8a
+android.accept_sdk_license = True
+android.enable_androidx = True
+
+[buildozer]
+log_level = 2
+"""
+
+with open("buildozer.spec", "w") as f:
+    f.write(spec_content.strip())
+
+print("--- Файл buildozer.spec успешно создан! ---")
+
+
+заменить spec на тот что в директории
+
+%cd /content/
+!buildozer android clean
+!buildozer -y android debug
+
+
+
